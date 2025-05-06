@@ -1,0 +1,25 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  amount: 9.99
+  start_date: 2025-04-29
+  end_date: 2025-04-29
+  user: one
+  category: one
+  recurrence: MyString
+  notification_threshold: 1
+  notes: MyText
+  is_active: false
+
+two:
+  name: MyString
+  amount: 9.99
+  start_date: 2025-04-29
+  end_date: 2025-04-29
+  user: two
+  category: two
+  recurrence: MyString
+  notification_threshold: 1
+  notes: MyText
+  is_active: false
