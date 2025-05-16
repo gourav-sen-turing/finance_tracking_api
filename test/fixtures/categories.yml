@@ -1,0 +1,21 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  description: MyText
+  category_type: MyString
+  color: MyString
+  icon: MyString
+  user: one
+  is_default: false
+  parent_category_id: 1
+
+two:
+  name: MyString
+  description: MyText
+  category_type: MyString
+  color: MyString
+  icon: MyString
+  user: two
+  is_default: false
+  parent_category_id: 1
