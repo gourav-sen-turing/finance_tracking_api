@@ -1,31 +1,36 @@
 class Category < ApplicationRecord
-  belongs_to :user
-  has_many :financial_transactions, dependent: :nullify
-  has_many :budgets, dependent: :destroy
+  belongs_to :user, optional: true  # Optional for system default categories
+  belongs_to :parent_category, class_name: 'Category', optional: true
+  has_many :sub_categories, class_name: 'Category', foreign_key: 'parent_category_id', dependent: :nullify
 
+  # Transactions relationship with type filtering
+  has_many :transactions, dependent: :nullify
+  has_many :income_transactions, -> { where(transaction_type: 'income') },
+           class_name: 'Transaction', dependent: :nullify
+  has_many :expense_transactions, -> { where(transaction_type: 'expense') },
+           class_name: 'Transaction', dependent: :nullify
+
+  has_many :budgets, dependent: :nullify
+
+  # Validations
   validates :name, presence: true
-  validates :color, format: { with: /\A#[0-9A-F]{6}\z/i, message: "must be a valid hex color code" }, allow_blank: true
+  validates :category_type, presence: true, inclusion: { in: ['income', 'expense'] }
+  validate :parent_category_type_matches
 
-  # Default color if none specified
-  before_create :set_default_color
-
-  # Get total amount spent in this category
-  def total_spent(start_date = nil, end_date = nil)
-    scope = financial_transactions.where(transaction_type: 'expense')
-    scope = scope.where(date: start_date..end_date) if start_date && end_date
-    scope.sum(:amount).abs
-  end
-
-  # Get total income in this category
-  def total_income(start_date = nil, end_date = nil)
-    scope = financial_transactions.where(transaction_type: 'income')
-    scope = scope.where(date: start_date..end_date) if start_date && end_date
-    scope.sum(:amount)
-  end
+  # Scopes
+  scope :income, -> { where(category_type: 'income') }
+  scope :expense, -> { where(category_type: 'expense') }
+  scope :top_level, -> { where(parent_category_id: nil) }
 
   private
 
-  def set_default_color
-    self.color ||= "##{SecureRandom.hex(3)}" # Random color if none provided
+  # Ensure parent category type matches
+  def parent_category_type_matches
+    if parent_category_id.present? &&
+       parent_category.present? &&
+       parent_category.category_type != category_type
+      errors.add(:parent_category, "type must match this category's type")
+    end
+>>>>>>> origin/main
   end
 end

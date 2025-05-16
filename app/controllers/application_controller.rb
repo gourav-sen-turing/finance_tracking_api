@@ -25,25 +25,21 @@ class ApplicationController < ActionController::API
   end
 
   def authenticate_user
-    byebug
     header = request.headers['Authorization']
     if header.present?
       token = header.split(' ').last
       begin
-        @decoded = JsonWebToken.decode(token)
-        @current_user = User.find(@decoded[:user_id])
+        @decoded = JwtHandler.decode(token)
+        if @decoded
+          @current_user = User.find(@decoded['user_id'])
+        else
+          render json: { error: 'Invalid token' }, status: :unauthorized
+        end
       rescue ActiveRecord::RecordNotFound
-        render json: { errors: 'User not found' }, status: :unauthorized
-      rescue JWT::ExpiredSignature
-        render json: { errors: 'Token has expired, please log in again' }, status: :unauthorized
-      rescue JWT::DecodeError, JWT::VerificationError
-        render json: { errors: 'Invalid token' }, status: :unauthorized
-      rescue StandardError => e
-        Rails.logger.error("Authentication error: #{e.class} - #{e.message}")
-        render json: { errors: 'Authentication error' }, status: :unauthorized
+        render json: { error: 'User not found' }, status: :unauthorized
       end
     else
-      render json: { errors: 'Missing token' }, status: :unauthorized
+      render json: { error: 'Authorization header missing' }, status: :unauthorized
     end
   end
 

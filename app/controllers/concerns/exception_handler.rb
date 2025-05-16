@@ -15,28 +15,6 @@ module ExceptionHandler
     rescue_from ExceptionHandler::MissingToken, with: :unauthorized_response
     rescue_from ExceptionHandler::InvalidToken, with: :unauthorized_response
     rescue_from ExceptionHandler::ExpiredSignature, with: :unauthorized_response
-    rescue_from ArgumentError, with: :handle_date_parse_error
-    rescue_from DateRangeError, with: :handle_date_range_error
-
-    def handle_date_parse_error(exception)
-      if exception.message.include?('invalid date')
-        render json: {
-          error: "Invalid date format",
-          details: "Please provide dates in YYYY-MM-DD format",
-          code: "INVALID_DATE_FORMAT"
-        }, status: :bad_request
-      else
-        raise exception
-      end
-    end
-
-    def handle_date_range_error(exception)
-      render json: {
-        error: "Invalid date range",
-        details: exception.message,
-        code: "INVALID_DATE_RANGE"
-      }, status: :bad_request
-    end
 
     # Handle record not found errors
     rescue_from ActiveRecord::RecordNotFound do |e|
