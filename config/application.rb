@@ -1,5 +1,5 @@
 require_relative "boot"
-
+require_relative '../app/middlewares/security_headers_middleware'
 require "rails/all"
 
 # Require the gems listed in Gemfile, including any gems
@@ -25,6 +25,13 @@ module FinanceTrackerApi
     # config.eager_load_paths << Rails.root.join("extras")
     config.autoload_paths << Rails.root.join('app', 'lib')
     config.eager_load_paths << Rails.root.join('app', 'lib')
+    config.autoload_paths << Rails.root.join('app', 'middlewares')
+
+    # Add middleware for rate limiting
+    # config.middleware.use Rack::Attack
+
+    # Add security headers middleware
+    # Move this line AFTER the autoload configuration
     config.middleware.use SecurityHeadersMiddleware
 
     # Only loads a smaller set of middleware suitable for API only apps.

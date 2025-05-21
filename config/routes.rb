@@ -90,6 +90,62 @@ Rails.application.routes.draw do
         get 'month_comparison/:year1/:month1/:year2/:month2', to: 'trends#month_comparison'
         get 'year_comparison/:year1/:year2', to: 'trends#year_comparison'
       end
+
+      resources :financial_goals do
+        member do
+          get :contributions
+          post :contributions, to: 'financial_goals#add_contribution'
+          post :categories, to: 'financial_goals#add_category'
+          delete 'categories/:category_id', to: 'financial_goals#remove_category'
+          get :projection
+        end
+
+        collection do
+          get :dashboard
+          get :stats
+        end
+      end
+
+      # Tags routes
+      resources :tags
+      post 'financial_transactions/:transaction_id/tags', to: 'tags#tag_transaction'
+
+      # Update existing financial transactions routes to include tagging
+      resources :financial_transactions do
+        # Existing routes...
+
+        # Add tagging endpoints
+        member do
+          get :tags
+          post :tags, to: 'tags#tag_transaction'
+        end
+      end
+
+      resources :categories do
+        member do
+          get 'financial_transactions'
+          get 'financial_goals' # New route
+        end
+      end
+
+      resources :notifications, only: [:index, :show] do
+        member do
+          patch :mark_as_read
+          patch :archive
+        end
+
+        collection do
+          post :mark_all_as_read
+          get :unread_count
+        end
+      end
+
+      # Notification preferences
+      resources :notification_preferences, only: [:index, :update] do
+        collection do
+          post :update_all
+        end
+      end
     end
   end
 end

@@ -5,6 +5,12 @@ class User < ApplicationRecord
   # Associations
   has_many :transactions, dependent: :destroy
   has_many :budgets, dependent: :destroy
+  has_many :financial_goals, dependent: :destroy
+  has_many :tags, dependent: :destroy
+  has_many :notification_preferences, dependent: :destroy
+  has_many :notifications, dependent: :destroy
+
+  after_create :setup_notification_preferences
 
   # Validations
   validates :email, presence: true, uniqueness: { case_sensitive: false }
@@ -43,5 +49,15 @@ class User < ApplicationRecord
     reset_password_token.present? &&
     reset_password_sent_at.present? &&
     reset_password_sent_at > 24.hours.ago
+  end
+
+  def unread_notification_count
+    notifications.unread.count
+  end
+
+  private
+
+  def setup_notification_preferences
+    NotificationPreference.create_defaults_for(self)
   end
 end

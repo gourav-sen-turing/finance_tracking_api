@@ -31,6 +31,5 @@ class Category < ApplicationRecord
        parent_category.category_type != category_type
       errors.add(:parent_category, "type must match this category's type")
     end
->>>>>>> origin/main
   end
 end

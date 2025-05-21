@@ -1,6 +1,13 @@
 class Transaction < ApplicationRecord
   belongs_to :user
   belongs_to :category
+  has_many :goal_contributions, dependent: :nullify
+  has_many :taggings, dependent: :destroy
+  has_many :tags, through: :taggings
+
+  # Callback to process goal contributions
+  after_create :process_for_goals
+  after_update :update_goal_contributions
 
   # Validations
   validates :amount, presence: true, numericality: { greater_than: 0 }
@@ -28,6 +35,26 @@ class Transaction < ApplicationRecord
   end
 
   private
+  def process_for_goals
+    # Process this transaction for all active goals
+    user.financial_goals.active.each do |goal|
+      goal.process_transaction(self)
+    end
+  end
+
+  def update_goal_contributions
+    # If transaction amount changed, update related goal contributions
+    if saved_change_to_amount?
+      original_amount, new_amount = amount_before_last_save, amount
+      ratio = new_amount / original_amount
+
+      goal_contributions.each do |contribution|
+        # Adjust contribution proportionally
+        adjusted_amount = (contribution.amount * ratio).round(2)
+        contribution.update(amount: adjusted_amount)
+      end
+    end
+  end
 
   # Ensure category type matches the transaction type
   def category_type_matches_transaction_type

@@ -1,6 +1,7 @@
 class Budget < ApplicationRecord
   belongs_to :user
   belongs_to :category
+  has_many :notifications, as: :source, dependent: :nullify
 
   # We don't directly associate budgets with transactions
   # Instead, we provide methods to calculate budget usage
@@ -33,6 +34,20 @@ class Budget < ApplicationRecord
 
   def exceeded?
     spent_amount > amount
+  end
+
+  # Calculate percentage spent of budget
+  def calculate_spent_percentage
+    return 0 if amount.nil? || amount <= 0
+    (amount_spent / amount * 100).round(1)
+  end
+
+  # Check if this budget has already sent an alert at the given percentage threshold
+  def alert_sent_for_threshold?(threshold)
+    notifications.joins(:notification_type)
+                .where(notification_types: { code: NotificationType::BUDGET_ALERT })
+                .where("metadata->>'percentage' = ?", threshold.to_s)
+                .exists?
   end
 
   private

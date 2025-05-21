@@ -77,6 +77,20 @@ module Api
         }
       end
 
+      def financial_goals
+        @category = current_user.categories.find(params[:id])
+        @goals = FinancialGoal.joins(:goal_categories)
+                 .where(goal_categories: { category_id: @category.id })
+                 .where(user_id: current_user.id)
+
+        render json: {
+          category: @category,
+          financial_goals: @goals.as_json(methods: [:progress_percentage])
+        }
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: 'Category not found' }, status: :not_found
+      end
+
       private
 
       def set_category

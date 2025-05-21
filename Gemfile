@@ -60,4 +60,4 @@ gem 'stackprof'
 # or
 gem 'scout_apm'
 
-gem 'secure_headers'
+gem 'secure_headers', '~> 6.3.0'

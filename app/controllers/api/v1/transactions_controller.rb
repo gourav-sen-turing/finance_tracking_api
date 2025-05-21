@@ -49,20 +49,23 @@ module Api
 
       # POST /api/v1/transactions
       def create
-        # Validate transaction parameters
-        validation_errors = TransactionParamValidator.validate(transaction_params)
+        @financial_transaction = current_user.financial_transactions.new(financial_transaction_params)
 
-        if validation_errors.any?
-          return render_error("Validation failed", :unprocessable_entity, validation_errors)
-        end
+        if @financial_transaction.save
+          # Process transaction for goals (this is now handled by the model callback)
 
-        # Create transaction using service
-        result = TransactionService.create_transaction(current_user, transaction_params)
+          # Apply tags if provided
+          if params[:tag_ids].present?
+            params[:tag_ids].each do |tag_id|
+              if current_user.tags.exists?(id: tag_id)
+                @financial_transaction.taggings.create(tag_id: tag_id)
+              end
+            end
+          end
 
-        if result[:success]
-          render_success({ transaction: result[:transaction] }, :created)
+          render json: @financial_transaction, status: :created
         else
-          render_validation_error(result[:transaction])
+          render json: { errors: @financial_transaction.errors.full_messages }, status: :unprocessable_entity
         end
       end
 
